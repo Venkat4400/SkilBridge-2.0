@@ -1,41 +1,158 @@
-# Connect Cause Crew
+# Skill Bridge
 
-## 📌 Project Overview
-Connect Cause Crew is a web-based platform designed to connect people with social causes, events, and communities.  
-The application helps users discover, participate in, and manage cause-driven activities through a modern and user-friendly interface.
-
-This project was designed and developed as part of an academic / personal project using modern web technologies.
+Skill Bridge is a **full-stack web application** designed to connect **volunteers** with **NGOs** by providing meaningful opportunities and skill-building tools. The platform goes beyond matchmaking by offering career‑focused features such as a **Resume Scanner**, **Mock Interviews**, and a **voice‑based Study Plan** to improve confidence and practical skills.
 
 ---
 
 ## 🚀 Features
-- User-friendly and responsive UI
-- Cause and event discovery
-- Interactive frontend with real-time updates
-- Scalable and modular code structure
-- Secure and optimized performance
+
+* 🔐 **User Authentication**
+
+  * Secure signup & login for Volunteers and NGOs
+
+* 🏢 **NGO & Opportunity Management**
+
+  * NGOs can create, update, and manage opportunities
+  * Volunteers can browse and apply to opportunities
+
+* 📊 **Application Tracking**
+
+  * Track application status in real time
+
+* 📄 **Resume Scanner**
+
+  * Analyze resumes and provide improvement insights
+
+* 🎤 **Mock Interview Module**
+
+  * Practice interviews to boost confidence and communication skills
+
+* 🗣️ **Voice‑Based Study Plan**
+
+  * Interactive, voice‑enabled learning plans for skill improvement
 
 ---
 
-## 🛠️ Technologies Used
-- Vite
-- TypeScript
-- React
-- Tailwind CSS
-- shadcn-ui
-- Node.js
-- npm
+## 🛠️ Tech Stack
+
+### Frontend
+
+* **React.js**
+* **TypeScript**
+* HTML5, CSS3
+
+### Backend
+
+* **Node.js**
+* RESTful APIs
+
+### Database
+
+* **SQL** (MySQL / PostgreSQL)
+
+### Other Tools & Concepts
+
+* Authentication & Authorization
+* MVC / Modular Architecture
+* API Integration
 
 ---
 
-## 📂 Project Setup (Local Development)
+## 📂 Project Structure (High Level)
+
+```
+skillbridge/
+├── frontend/        # React + TypeScript frontend
+├── backend/         # Node.js backend APIs
+├── database/        # SQL schemas & queries
+├── docs/            # Documentation
+└── README.md
+```
+
+---
+
+## ⚙️ Installation & Setup
 
 ### Prerequisites
-Make sure you have the following installed:
-- Node.js (v18 or later recommended)
-- npm
 
-### Installation Steps
+* Node.js (v16+ recommended)
+* npm or yarn
+* SQL Database (MySQL / PostgreSQL)
+
+### Clone the Repository
+
+```bash
+git clone https://github.com/your-username/skillbridge.git
+cd skillbridge
+```
+
+### Frontend Setup
+
+```bash
+cd frontend
+npm install
+npm start
+```
+
+### Backend Setup
+
+```bash
+cd backend
+npm install
+npm run dev
+```
+
+### Database Setup
+
+* Create a SQL database
+* Update database credentials in backend configuration
+* Run provided SQL scripts
+
+---
+
+## 🎯 Use Cases
+
+* Volunteers looking for real‑world experience
+* NGOs seeking skilled and passionate contributors
+* Students preparing for interviews and skill development
+
+---
+
+## 📈 Future Enhancements
+
+* AI‑powered opportunity recommendations
+* Advanced analytics dashboard for NGOs
+* Mobile application (React Native)
+* Multilingual voice support
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome!
+
+1. Fork the repository
+2. Create a new branch
+3. Commit your changes
+4. Open a Pull Request
+
+---
+
+## 📜 License
+
+This project is licensed under the **MIT License**.
+
+---
+
+## 👤 Author
+
+**Venkat Kota**
+Full‑Stack Developer | 2026 Graduate
+
+---
+
+⭐ If you like this project, don’t forget to star the repository!
+
 
 
 
