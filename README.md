@@ -53,7 +53,6 @@ Skill Bridge is a **full-stack web application** designed to connect **volunteer
 ### Other Tools & Concepts
 
 * Authentication & Authorization
-* MVC / Modular Architecture
 * API Integration
 
 ---
