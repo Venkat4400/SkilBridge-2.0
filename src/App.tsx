@@ -1,0 +1,53 @@
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import Index from "./pages/Index";
+import Auth from "./pages/Auth";
+import Dashboard from "./pages/Dashboard";
+import Profile from "./pages/Profile";
+import Opportunities from "./pages/Opportunities";
+import Applications from "./pages/Applications";
+import Messages from "./pages/Messages";
+import Notifications from "./pages/Notifications";
+import CreateOpportunity from "./pages/CreateOpportunity";
+import ManageOpportunities from "./pages/ManageOpportunities";
+import OpportunityApplications from "./pages/OpportunityApplications";
+import ResumeScanner from "./pages/ResumeScanner";
+import MockInterview from "./pages/MockInterview";
+import NotFound from "./pages/NotFound";
+
+const queryClient = new QueryClient();
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/opportunities" element={<Opportunities />} />
+            <Route path="/opportunities/create" element={<CreateOpportunity />} />
+            <Route path="/opportunities/manage" element={<ManageOpportunities />} />
+            <Route path="/opportunities/:id/applications" element={<OpportunityApplications />} />
+            <Route path="/applications" element={<Applications />} />
+            <Route path="/messages" element={<Messages />} />
+            <Route path="/notifications" element={<Notifications />} />
+            <Route path="/resume-scanner" element={<ResumeScanner />} />
+            <Route path="/mock-interview" element={<MockInterview />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
+
+export default App;
