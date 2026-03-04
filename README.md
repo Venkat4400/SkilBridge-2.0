@@ -161,10 +161,9 @@ Full‑Stack Developer | 2026 Graduate
 npm install
 
 # Start the development server
-npm run dev
-<img width="1910" height="919" alt="Screenshot 2026-01-14 123750" src="https://github.com/user-attachments/assets/e5a833c7-f19d-495f-9952-220b6f3dbbbf" />
-<img width="1909" height="923" alt="Screenshot 2026-01-14 123727" src="https://github.com/user-attachments/assets/4720b28b-b1ac-4705-9fec-dfeb3fc54cd4" />
 
 
+
+<img width="291" height="295" alt="image" src="https://github.com/user-attachments/assets/4b299861-b809-4865-876c-8cbcc73d5056" />
 
 
