@@ -9,9 +9,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Navigate, Link } from "react-router-dom";
-import { 
-  Search, MapPin, Clock, Calendar, Users, Briefcase, 
-  Filter, ChevronDown, Building2, Globe, Sparkles, GitCompare 
+import {
+  Search, MapPin, Clock, Calendar, Users, Briefcase,
+  Filter, ChevronDown, Building2, Globe, Sparkles, GitCompare
 } from "lucide-react";
 import { calculateSkillMatch, getMatchLevel } from "@/lib/skillMatching";
 import {
@@ -35,7 +35,7 @@ type Opportunity = Tables<"opportunities"> & {
 };
 
 export default function Opportunities() {
-  const { profile, loading, user } = useAuth();
+  const { profile, loading, user, isGuest } = useAuth();
   const { toast } = useToast();
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -84,6 +84,14 @@ export default function Opportunities() {
         title: "Sign in required",
         description: "Please sign in to apply for opportunities",
         variant: "destructive",
+      });
+      return;
+    }
+
+    if (isGuest) {
+      toast({
+        title: "Guest Mode",
+        description: "Applications cannot be submitted in guest mode. Please create an account to apply.",
       });
       return;
     }
@@ -323,11 +331,10 @@ export default function Opportunities() {
               const matchLevel = getMatchLevel(opportunity.matchPercentage);
               const isSelected = selectedForComparison.includes(opportunity.id);
               return (
-                <Card 
-                  key={opportunity.id} 
-                  className={`flex flex-col hover:shadow-lg transition-all ${
-                    isSelected ? "ring-2 ring-primary" : ""
-                  }`}
+                <Card
+                  key={opportunity.id}
+                  className={`flex flex-col hover:shadow-lg transition-all ${isSelected ? "ring-2 ring-primary" : ""
+                    }`}
                 >
                   <CardHeader>
                     <div className="flex items-start justify-between">
@@ -368,34 +375,34 @@ export default function Opportunities() {
                       {opportunity.description}
                     </CardDescription>
                   </CardHeader>
-                <CardContent className="flex-1">
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {opportunity.skills_required?.slice(0, 3).map((skill, i) => (
-                      <Badge key={i} variant="skill">
-                        {skill}
-                      </Badge>
-                    ))}
-                    {opportunity.skills_required && opportunity.skills_required.length > 3 && (
-                      <Badge variant="outline">+{opportunity.skills_required.length - 3}</Badge>
-                    )}
-                  </div>
-                  <div className="space-y-2 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4" />
-                      {opportunity.location}
+                  <CardContent className="flex-1">
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {opportunity.skills_required?.slice(0, 3).map((skill, i) => (
+                        <Badge key={i} variant="skill">
+                          {skill}
+                        </Badge>
+                      ))}
+                      {opportunity.skills_required && opportunity.skills_required.length > 3 && (
+                        <Badge variant="outline">+{opportunity.skills_required.length - 3}</Badge>
+                      )}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4" />
-                      {opportunity.hours_per_week} hours/week • {opportunity.commitment_type}
-                    </div>
-                    {opportunity.spots_available && (
+                    <div className="space-y-2 text-sm text-muted-foreground">
                       <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4" />
-                        {opportunity.spots_available} spots available
+                        <MapPin className="h-4 w-4" />
+                        {opportunity.location}
                       </div>
-                    )}
-                  </div>
-                </CardContent>
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4" />
+                        {opportunity.hours_per_week} hours/week • {opportunity.commitment_type}
+                      </div>
+                      {opportunity.spots_available && (
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4" />
+                          {opportunity.spots_available} spots available
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
                   <CardFooter className="pt-4 border-t">
                     <Button
                       variant="hero"

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Navigate, Link } from "react-router-dom";
-import { 
+import {
   PlusCircle, MapPin, Clock, Users, Edit2, Trash2, Eye, EyeOff,
   Briefcase, Calendar, ChevronRight
 } from "lucide-react";
@@ -56,7 +56,7 @@ const allSkills = [
 ];
 
 export default function ManageOpportunities() {
-  const { profile, loading, user } = useAuth();
+  const { profile, loading, user, isGuest } = useAuth();
   const { toast } = useToast();
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -66,13 +66,45 @@ export default function ManageOpportunities() {
 
   useEffect(() => {
     if (profile?.id) {
-      fetchOpportunities();
+      if (isGuest) {
+        setOpportunities([
+          {
+            id: "guest-opp-1",
+            title: "Project Manager Needed",
+            description: "Help us organize our upcoming fundraisers and community events.",
+            location: "Chicago, IL",
+            is_remote: false,
+            status: "open",
+            hours_per_week: 8,
+            ngo_id: profile.id,
+            applications_count: 5,
+            skills_required: ["Project Management", "Communication"],
+            created_at: new Date().toISOString(),
+          } as any,
+          {
+            id: "guest-opp-2",
+            title: "Graphic Designer",
+            description: "Create visual assets for our social media campaigns.",
+            location: "Remote",
+            is_remote: true,
+            status: "open",
+            hours_per_week: 10,
+            ngo_id: profile.id,
+            applications_count: 3,
+            skills_required: ["Graphic Design", "Adobe Suite"],
+            created_at: new Date(Date.now() - 172800000).toISOString(),
+          } as any
+        ]);
+        setIsLoading(false);
+      } else {
+        fetchOpportunities();
+      }
     }
-  }, [profile?.id]);
+  }, [profile?.id, isGuest]);
 
   const fetchOpportunities = async () => {
     if (!profile?.id) return;
-    
+
     try {
       const { data, error } = await supabase
         .from("opportunities")
@@ -145,8 +177,8 @@ export default function ManageOpportunities() {
       );
       toast({
         title: newStatus === "open" ? "Opportunity opened" : "Opportunity closed",
-        description: newStatus === "open" 
-          ? "Volunteers can now apply." 
+        description: newStatus === "open"
+          ? "Volunteers can now apply."
           : "No new applications will be accepted.",
       });
     } catch (error: any) {
@@ -186,7 +218,7 @@ export default function ManageOpportunities() {
       });
       return;
     }
-    
+
     setEditErrors({});
     try {
       const { error } = await supabase

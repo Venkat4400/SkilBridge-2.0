@@ -6,8 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link, Navigate } from "react-router-dom";
-import { 
-  Briefcase, Users, MessageSquare, TrendingUp, PlusCircle, Search, 
+import {
+  Briefcase, Users, MessageSquare, TrendingUp, PlusCircle, Search,
   ArrowRight, Bell, CheckCircle, Clock, Calendar, Sparkles, User
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,7 +33,7 @@ interface ActivityItem {
 }
 
 export default function Dashboard() {
-  const { profile, loading } = useAuth();
+  const { profile, loading, isGuest } = useAuth();
   const [stats, setStats] = useState<DashboardStats>({
     opportunities: 0,
     applications: 0,
@@ -60,11 +60,44 @@ export default function Dashboard() {
 
   const fetchDashboardData = async () => {
     if (!profile) return;
-    
+
+    if (isGuest) {
+      setStats({
+        opportunities: profile.role === "ngo" ? 5 : 0,
+        applications: profile.role === "ngo" ? 12 : 8,
+        messages: 3,
+        profileCompletion: 70,
+      });
+
+      const mockActivities: ActivityItem[] = [
+        {
+          id: "mock-1",
+          type: "application",
+          title: profile.role === "ngo" ? "New Application" : "Application Pending",
+          description: profile.role === "ngo"
+            ? "Sarah Chen applied to Web Developer"
+            : "Applied to Urban Gardening Project",
+          time: "2h ago",
+        },
+        {
+          id: "mock-2",
+          type: "message",
+          title: "New Message",
+          description: profile.role === "ngo"
+            ? "Message from John Smith regarding interview"
+            : "Message from Earth Warriors NGO",
+          time: "5h ago",
+        }
+      ];
+      setRecentActivity(mockActivities);
+      setLoadingStats(false);
+      return;
+    }
+
     setLoadingStats(true);
     try {
       const isNGO = profile.role === "ngo";
-      
+
       // Fetch opportunities count
       let opportunitiesCount = 0;
       if (isNGO) {
@@ -75,7 +108,7 @@ export default function Dashboard() {
           .eq("status", "open");
         opportunitiesCount = count || 0;
       }
-      
+
       // Fetch applications count
       let applicationsCount = 0;
       if (isNGO) {
@@ -84,7 +117,7 @@ export default function Dashboard() {
           .from("opportunities")
           .select("id")
           .eq("ngo_id", profile.id);
-        
+
         if (opportunities && opportunities.length > 0) {
           const oppIds = opportunities.map(o => o.id);
           const { count } = await supabase
@@ -100,43 +133,43 @@ export default function Dashboard() {
           .eq("volunteer_id", profile.id);
         applicationsCount = count || 0;
       }
-      
+
       // Fetch unread messages count
       const { count: messagesCount } = await supabase
         .from("messages")
         .select("*", { count: "exact", head: true })
         .eq("receiver_id", profile.id)
         .eq("is_read", false);
-      
+
       // Calculate profile completion
-      const profileFields = isNGO 
+      const profileFields = isNGO
         ? ["full_name", "bio", "location", "organization_name", "website", "mission", "avatar_url"]
         : ["full_name", "bio", "location", "skills", "availability", "avatar_url"];
-      
+
       const filledFields = profileFields.filter(field => {
         const value = profile[field as keyof typeof profile];
         if (Array.isArray(value)) return value.length > 0;
         return !!value;
       });
       const profileCompletion = Math.round((filledFields.length / profileFields.length) * 100);
-      
+
       setStats({
         opportunities: opportunitiesCount,
         applications: applicationsCount,
         messages: messagesCount || 0,
         profileCompletion,
       });
-      
+
       // Fetch recent activity
       const activities: ActivityItem[] = [];
-      
+
       // Recent applications
       if (isNGO) {
         const { data: opportunities } = await supabase
           .from("opportunities")
           .select("id")
           .eq("ngo_id", profile.id);
-        
+
         if (opportunities && opportunities.length > 0) {
           const { data: recentApps } = await supabase
             .from("applications")
@@ -144,7 +177,7 @@ export default function Dashboard() {
             .in("opportunity_id", opportunities.map(o => o.id))
             .order("created_at", { ascending: false })
             .limit(3);
-          
+
           recentApps?.forEach(app => {
             activities.push({
               id: app.id,
@@ -162,7 +195,7 @@ export default function Dashboard() {
           .eq("volunteer_id", profile.id)
           .order("created_at", { ascending: false })
           .limit(3);
-        
+
         recentApps?.forEach(app => {
           activities.push({
             id: app.id,
@@ -173,7 +206,7 @@ export default function Dashboard() {
           });
         });
       }
-      
+
       setRecentActivity(activities.slice(0, 5));
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
@@ -189,7 +222,7 @@ export default function Dashboard() {
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
-    
+
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
@@ -224,6 +257,20 @@ export default function Dashboard() {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
+        {isGuest && (
+          <div className="bg-primary/10 border border-primary/30 rounded-xl p-4 mb-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Sparkles className="w-5 h-5 text-primary" />
+              <div>
+                <p className="font-semibold text-primary">Guest Mode</p>
+                <p className="text-sm text-muted-foreground">You are exploring SkillBridge as a guest. Sign up to save your progress and unlock all features.</p>
+              </div>
+            </div>
+            <Link to="/auth?mode=signup">
+              <Button size="sm" variant="hero">Create Free Account</Button>
+            </Link>
+          </div>
+        )}
         {/* Welcome Header with Avatar */}
         <div className="flex flex-col md:flex-row md:items-center gap-6 mb-8">
           <Avatar className="w-16 h-16 border-4 border-background shadow-lg">
@@ -234,11 +281,11 @@ export default function Dashboard() {
           </Avatar>
           <div className="flex-1">
             <h1 className="text-3xl font-bold font-display mb-1">
-              Welcome back, {profile.full_name.split(" ")[0]}! 
+              Welcome back, {profile.full_name.split(" ")[0]}!
             </h1>
             <p className="text-muted-foreground">
-              {isNGO 
-                ? "Manage your opportunities and connect with skilled volunteers." 
+              {isNGO
+                ? "Manage your opportunities and connect with skilled volunteers."
                 : "Discover opportunities that match your skills and make an impact."}
             </p>
           </div>
@@ -280,7 +327,7 @@ export default function Dashboard() {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card className="overflow-hidden">
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
@@ -298,7 +345,7 @@ export default function Dashboard() {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card className="overflow-hidden">
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
@@ -312,7 +359,7 @@ export default function Dashboard() {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card className="overflow-hidden">
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
@@ -358,7 +405,7 @@ export default function Dashboard() {
                       </div>
                     </div>
                   </Link>
-                  
+
                   <Link to="/profile" className="block">
                     <div className="p-4 rounded-xl border-2 border-dashed border-secondary/30 hover:border-secondary/50 hover:bg-secondary/5 transition-all cursor-pointer">
                       <div className="flex items-center gap-3 mb-2">
@@ -372,7 +419,7 @@ export default function Dashboard() {
                       </div>
                     </div>
                   </Link>
-                  
+
                   <Link to="/messages" className="block">
                     <div className="p-4 rounded-xl border-2 border-dashed border-muted hover:border-muted-foreground/30 hover:bg-muted/50 transition-all cursor-pointer">
                       <div className="flex items-center gap-3 mb-2">
@@ -386,7 +433,7 @@ export default function Dashboard() {
                       </div>
                     </div>
                   </Link>
-                  
+
                   <Link to={isNGO ? "/opportunities/manage" : "/applications"} className="block">
                     <div className="p-4 rounded-xl border-2 border-dashed border-muted hover:border-muted-foreground/30 hover:bg-muted/50 transition-all cursor-pointer">
                       <div className="flex items-center gap-3 mb-2">
@@ -468,13 +515,12 @@ export default function Dashboard() {
                   <div className="space-y-4">
                     {recentActivity.map((activity) => (
                       <div key={activity.id} className="flex items-start gap-3">
-                        <div className={`p-2 rounded-full ${
-                          activity.type === "application" 
-                            ? "bg-primary/10 text-primary" 
-                            : activity.type === "message"
+                        <div className={`p-2 rounded-full ${activity.type === "application"
+                          ? "bg-primary/10 text-primary"
+                          : activity.type === "message"
                             ? "bg-emerald-500/10 text-emerald-600"
                             : "bg-secondary/10 text-secondary"
-                        }`}>
+                          }`}>
                           {activity.type === "application" && <CheckCircle className="w-4 h-4" />}
                           {activity.type === "message" && <MessageSquare className="w-4 h-4" />}
                           {activity.type === "opportunity" && <Briefcase className="w-4 h-4" />}
@@ -510,8 +556,8 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="w-full h-2 bg-muted rounded-full overflow-hidden mb-4">
-                    <div 
-                      className="h-full bg-gradient-to-r from-primary to-secondary transition-all" 
+                    <div
+                      className="h-full bg-gradient-to-r from-primary to-secondary transition-all"
                       style={{ width: `${stats.profileCompletion}%` }}
                     />
                   </div>

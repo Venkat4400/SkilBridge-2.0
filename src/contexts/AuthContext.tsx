@@ -41,6 +41,8 @@ interface AuthContextType {
   updatePassword: (password: string) => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
   refreshProfile: () => Promise<void>;
+  signInAsGuest: (role: UserRole) => void;
+  isGuest: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -50,6 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isGuest, setIsGuest] = useState(false);
 
   const fetchProfile = async (userId: string) => {
     const { data, error } = await supabase
@@ -78,6 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
 
       if (session?.user) {
+        setIsGuest(false); // Clear guest state on real session
         setTimeout(async () => {
           const profileData = await fetchProfile(session.user.id);
           setProfile(profileData);
@@ -92,8 +96,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
+        setIsGuest(false); // Clear guest state on initial session check
         fetchProfile(session.user.id).then((profileData) => {
           setProfile(profileData);
           setLoading(false);
@@ -105,6 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signUp = async (email: string, password: string, role: UserRole, fullName: string, orgName?: string) => {
+    setIsGuest(false); // Reset guest state before sign up
     const redirectUrl = `${window.location.origin}/`;
 
     const { data, error } = await supabase.auth.signUp({
@@ -145,6 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signIn = async (email: string, password: string) => {
+    setIsGuest(false); // Reset guest state before sign in
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -159,6 +166,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    if (isGuest) {
+      setIsGuest(false);
+      setProfile(null);
+      toast.success("Guest session ended");
+      return;
+    }
+
     const { error } = await supabase.auth.signOut();
     if (error) {
       toast.error("Error signing out");
@@ -167,9 +181,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     toast.success("Signed out successfully");
   };
 
+  const signInAsGuest = (role: UserRole) => {
+    setIsGuest(true);
+    setProfile({
+      id: `guest-${role}`,
+      user_id: `guest-${role}`,
+      role: role,
+      full_name: `Guest ${role === "volunteer" ? "Volunteer" : "NGO"}`,
+      email: `guest@${role}.com`,
+      avatar_url: null,
+      bio: "You are currently exploring SkillBridge as a guest. Sign up to unlock all features!",
+      location: "Guest Location",
+      phone: null,
+      skills: role === "volunteer" ? ["Communication", "Organization", "Problem Solving"] : [],
+      experience_years: null,
+      availability: null,
+      organization_name: role === "ngo" ? "Guest Organization" : null,
+      website: null,
+      mission: role === "ngo" ? "To explore how SkillBridge can help our organization." : null,
+      founded_year: null,
+      team_size: null,
+      email_new_messages: false,
+      email_new_applications: false,
+      email_application_updates: false,
+    });
+    toast.success(`Signed in as guest ${role}`);
+  };
+
   const resetPassword = async (email: string) => {
     const redirectUrl = `${window.location.origin}/auth?mode=reset`;
-    
+
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: redirectUrl,
     });
@@ -224,6 +265,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         updatePassword,
         updateProfile,
         refreshProfile,
+        signInAsGuest,
+        isGuest,
       }}
     >
       {children}

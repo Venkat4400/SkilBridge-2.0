@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Navigate, Link } from "react-router-dom";
-import { 
-  Briefcase, MapPin, Clock, Calendar, Building2, 
-  CheckCircle2, XCircle, Clock4, MessageSquare 
+import {
+  Briefcase, MapPin, Clock, Calendar, Building2,
+  CheckCircle2, XCircle, Clock4, MessageSquare
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Tables } from "@/integrations/supabase/types";
@@ -21,7 +21,7 @@ type Application = Tables<"applications"> & {
 };
 
 export default function Applications() {
-  const { profile, loading, user } = useAuth();
+  const { profile, loading, user, isGuest } = useAuth();
   const { toast } = useToast();
   const [applications, setApplications] = useState<Application[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -29,9 +29,51 @@ export default function Applications() {
 
   useEffect(() => {
     if (profile) {
-      fetchApplications();
+      if (isGuest) {
+        setApplications([
+          {
+            id: "guest-app-1",
+            status: "pending",
+            created_at: new Date().toISOString(),
+            opportunity_id: "1",
+            volunteer_id: profile.id,
+            opportunities: {
+              id: "1",
+              title: "Community Website Redesign",
+              location: "Remote",
+              hours_per_week: 10,
+              ngo_id: "ngo-1",
+              profiles: { organization_name: "Tech For Good", id: "ngo-1" },
+              skills_required: ["Web Development", "React"],
+            } as any,
+            cover_letter: "I would love to help with this project!",
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: "guest-app-2",
+            status: "accepted",
+            created_at: new Date(Date.now() - 86400000).toISOString(),
+            opportunity_id: "2",
+            volunteer_id: profile.id,
+            opportunities: {
+              id: "2",
+              title: "Digital Marketing Mentor",
+              location: "New York, NY",
+              hours_per_week: 5,
+              ngo_id: "ngo-2",
+              profiles: { organization_name: "Education First", id: "ngo-2" },
+              skills_required: ["Marketing", "Communication"],
+            } as any,
+            cover_letter: "I have 5 years of experience in marketing.",
+            updated_at: new Date().toISOString()
+          }
+        ]);
+        setIsLoading(false);
+      } else {
+        fetchApplications();
+      }
     }
-  }, [profile]);
+  }, [profile, isGuest]);
 
   const fetchApplications = async () => {
     if (!profile) return;
@@ -215,7 +257,7 @@ export default function Applications() {
                           </h3>
                         </div>
                       </div>
-                      
+
                       <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mt-3">
                         <div className="flex items-center gap-1">
                           <MapPin className="h-4 w-4" />
@@ -244,7 +286,7 @@ export default function Applications() {
 
                     <div className="flex flex-col items-end gap-3">
                       {getStatusBadge(application.status)}
-                      
+
                       {application.status === "accepted" && (
                         <Link to={`/messages?to=${application.opportunities.profiles?.id}`}>
                           <Button variant="outline" size="sm" className="gap-2">

@@ -33,7 +33,7 @@ type Conversation = {
 };
 
 export default function Messages() {
-  const { profile, loading, user } = useAuth();
+  const { profile, loading, user, isGuest } = useAuth();
   const { toast } = useToast();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
@@ -46,16 +46,71 @@ export default function Messages() {
 
   useEffect(() => {
     if (profile) {
-      fetchConversations();
+      if (isGuest) {
+        const mockConvo: Conversation = {
+          id: profile.role === "ngo" ? "vol-1" : "ngo-1",
+          user: {
+            id: profile.role === "ngo" ? "vol-1" : "ngo-1",
+            user_id: profile.role === "ngo" ? "vol-1" : "ngo-1",
+            role: profile.role === "ngo" ? "volunteer" : "ngo",
+            full_name: profile.role === "ngo" ? "Alice Johnson" : "Environmental NGO",
+            organization_name: profile.role === "ngo" ? null : "Environmental NGO",
+            avatar_url: null,
+          },
+          lastMessage: {
+            id: "m-1",
+            content: "Great. Can we schedule a brief call tomorrow?",
+            created_at: new Date().toISOString(),
+            sender_id: profile.role === "ngo" ? "vol-1" : "ngo-1",
+            receiver_id: profile.id,
+            is_read: false
+          } as any,
+          unreadCount: 1
+        };
+        setConversations([mockConvo]);
+        setIsLoading(false);
+      } else {
+        fetchConversations();
+      }
     }
-  }, [profile]);
+  }, [profile, isGuest]);
 
   useEffect(() => {
     if (selectedConversation && profile) {
-      fetchMessages(selectedConversation.user.id);
-      markMessagesAsRead(selectedConversation.user.id);
+      if (isGuest) {
+        // Just mock messages for the selected guest conversation
+        setMessages([
+          {
+            id: "msg-1",
+            sender_id: selectedConversation.user.id,
+            receiver_id: profile.id,
+            content: "Hello! I saw your profile and I think you'd be a great fit for our project.",
+            created_at: new Date(Date.now() - 3600000).toISOString(),
+            is_read: true
+          },
+          {
+            id: "msg-2",
+            sender_id: profile.id,
+            receiver_id: selectedConversation.user.id,
+            content: "Thanks! I'd love to learn more about it.",
+            created_at: new Date(Date.now() - 1800000).toISOString(),
+            is_read: true
+          },
+          {
+            id: "msg-3",
+            sender_id: selectedConversation.user.id,
+            receiver_id: profile.id,
+            content: "Great. Can we schedule a brief call tomorrow?",
+            created_at: new Date(Date.now() - 600000).toISOString(),
+            is_read: false
+          }
+        ]);
+      } else {
+        fetchMessages(selectedConversation.user.id);
+        markMessagesAsRead(selectedConversation.user.id);
+      }
     }
-  }, [selectedConversation, profile]);
+  }, [selectedConversation, profile, isGuest]);
 
   useEffect(() => {
     scrollToBottom();
@@ -305,9 +360,8 @@ export default function Messages() {
                   filteredConversations.map((conv) => (
                     <button
                       key={conv.id}
-                      className={`w-full p-4 flex items-center gap-3 hover:bg-muted/50 transition-colors text-left ${
-                        selectedConversation?.id === conv.id ? "bg-muted" : ""
-                      }`}
+                      className={`w-full p-4 flex items-center gap-3 hover:bg-muted/50 transition-colors text-left ${selectedConversation?.id === conv.id ? "bg-muted" : ""
+                        }`}
                       onClick={() => setSelectedConversation(conv)}
                     >
                       <Avatar className="h-10 w-10">
@@ -371,11 +425,10 @@ export default function Messages() {
                             className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
                           >
                             <div
-                              className={`max-w-[70%] rounded-2xl px-4 py-2 ${
-                                isOwn
-                                  ? "bg-primary text-primary-foreground rounded-br-md"
-                                  : "bg-muted rounded-bl-md"
-                              }`}
+                              className={`max-w-[70%] rounded-2xl px-4 py-2 ${isOwn
+                                ? "bg-primary text-primary-foreground rounded-br-md"
+                                : "bg-muted rounded-bl-md"
+                                }`}
                             >
                               <p className="text-sm">{msg.content}</p>
                               <div className={`flex items-center gap-1 mt-1 ${isOwn ? "justify-end" : ""}`}>
